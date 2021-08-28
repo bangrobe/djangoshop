@@ -1,0 +1,101 @@
+{% extends 'core/base.html' %}
+{% block title %}
+{{product.title}}
+{% endblock title %}
+
+
+{% block content %}
+            <div id="product-app">
+    <div class="columns is-multiline">
+        <div class="column is-6">
+
+            {% if product.image %}
+                <figure class="image is-4by3 mb-6">
+                    <img :src="mainImage.image" />
+                </figure>
+            {% endif %}
+
+            {% if product.images.all %}
+                <div class="columns">
+                    <div class="column" v-for="image in images" :key="image.id">
+                        <img :src="image.thumbnail" @click="changeMainImage(image)"/>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="column is-6">
+            <h1 class="title"> {{ product.title}} </h1>
+            <p> {{product.price}}đ </p>
+            <p class="mb-6"><span class="tag is-dark"> {{product.vendor.name }}</span></p>
+
+            <form method="POST" action='.'>
+                {% csrf_token %}
+
+                <div class="field has-addons">
+                    <div class="control">
+                        <input type="number" name="quantity" value="1" class="input" min="1" />
+                    </div>
+                    <div class="control">
+                        <button class="button is-dark is-uppercase">Add To Cart</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="column is-12">
+            <div class="box">
+                <h2 class="title is-3">Description</h2>
+                <hr />
+                <p> {{ product.description }}</p>
+            </div>
+            {% if messages %}
+                {% for message in messages  %}    
+                    <div class="notification is-success is-toast">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+    {% if similar_products %}
+        <hr />
+        <div class="columns is-multiline">
+            <div class="column is-12">
+                <h2 class="subtitle">Similar Product</h2>
+            </div>
+
+        {% for product in similar_products  %}
+                {% include 'product/parts/list_item.html' %}
+        {% endfor %}
+        </div>
+    
+    {% endif %}
+</div>
+{% endblock content %}
+{% block scripts %}
+{{ images_string|json_script:"json-images_string"}}
+<script src="https://unpkg.com/vue@next"></script>
+<script>
+    const productApp = {
+        data() {
+            return {
+                mainImage: '',
+                images: []
+            }
+        },
+        methods: {
+            changeMainImage(image) {
+                this.mainImage = image;
+                console.log(this.mainImage)
+            }
+        },
+        mounted() {
+            this.images = JSON.parse(JSON.parse(document.getElementById("json-images_string").textContent))
+            this.mainImage = this.images[0]
+        }
+    }
+    Vue.createApp(productApp).mount('#product-app')
+</script>
+{% endblock scripts %}
+
+
